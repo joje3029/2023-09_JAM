@@ -5,7 +5,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 
-public class JDBCInsertTest {
+public class JDBCdeleteTest2 {
 	public static void main(String[] args) {
 		Connection conn = null;
 		PreparedStatement pstmt = null;
