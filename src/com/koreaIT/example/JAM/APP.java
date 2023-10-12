@@ -8,43 +8,73 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-public class APP {
-	public void start() {
-	
-	System.out.println("=프로그램 시작==");
-	Scanner sc = new Scanner(System.in);
+public class App {
 
-	while (true) {
-		System.out.print("명령어 ) ");
-		String cmd = sc.nextLine().trim();
-		
-		if (cmd.equals("exit")) {
-			break;
-		}
-		
-		Connection conn = null;
-		PreparedStatement pstmt = null;
-		ResultSet rs = null;
-		
-		try {
-			Class.forName("com.mysql.jdbc.Driver");
+	public void start() {
+		System.out.println("=프로그램 시작==");
+		Scanner sc = new Scanner(System.in);
+
+		while (true) {
+			System.out.print("명령어 ) ");
+			String cmd = sc.nextLine().trim();
+
+			Connection conn = null;
+
+			try {
+				Class.forName("com.mysql.jdbc.Driver");
+
+			} catch (ClassNotFoundException e) {
+				System.out.println("드라이버 로딩 실패");
+				e.printStackTrace();
+			}
+ 
 			String url = "jdbc:mysql://127.0.0.1:3306/JAM?useUnicode=true&characterEncoding=utf8&autoReconnect=true&serverTimezone=Asia/Seoul&useOldAliasMetadataBehavior=true&zeroDateTimeNehavior=convertToNull";
 
-			conn = DriverManager.getConnection(url, "root", "");
+			try {
+				conn = DriverManager.getConnection(url, "root", "");
 
-//		여기서 controller로 이어야겠네.	
-			
-			
+				int actionRs = doAction(conn, cmd, sc);
+
+				if (actionRs == -1) {
+					System.out.println("==프로그램 종료==");
+					break;
+				}
+
+			} catch (SQLException e) {
+				System.out.println("에러 : " + e);
+			} finally {
+				try {
+					if (conn != null && !conn.isClosed()) {
+						conn.close();
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+
+		}
+
+		sc.close();
+
+	}
+
+	private int doAction(Connection conn, String cmd, Scanner sc) {
+
+		if (cmd.equals("exit")) {
+			return -1;
+		}
+
 		if (cmd.equals("article write")) {
 			System.out.println("==게시물 작성==");
-
 			System.out.printf("제목 : ");
 			String title = sc.nextLine();
 			System.out.printf("내용 : ");
 			String body = sc.nextLine();
-
 			Article article = new Article(title, body);
 
+			PreparedStatement pstmt = null;
+
+			try {
 
 				String sql = "INSERT INTO article";
 				sql += " SET regDate = NOW(),";
@@ -53,49 +83,66 @@ public class APP {
 				sql += "`body` = '" + body + "';";
 
 				pstmt = conn.prepareStatement(sql);
-
 				int affectedRow = pstmt.executeUpdate();
+				System.out.println("affectedRow : " + affectedRow);
 
-
+			} catch (SQLException e) {
+				System.out.println("에러 a.w : " + e);
+			} finally {
+				try {
+					if (pstmt != null && !pstmt.isClosed()) {
+						pstmt.close();
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
 		} else if (cmd.equals("article list")) {
 			System.out.println("==게시물 목록==");
+			PreparedStatement pstmt = null;
+			ResultSet rs = null;
 
-
-			// 결과를 담을 ArrayList생성
 			ArrayList<Article> articles = new ArrayList<Article>();
 
-
+			try {
 				String sql = "SELECT *";
 				sql += " FROM article";
 				sql += " ORDER BY id DESC;";
-
+				System.out.println(sql);
 
 				pstmt = conn.prepareStatement(sql);
 
-				// 결과를 담을 ResultSet 생성 후 결과 담기
 				rs = pstmt.executeQuery(sql);
 
-				// ResultSet에 담긴 결과를 ArrayList에 담기
 				while (rs.next()) {
 					int id = rs.getInt("id");
 					String regDate = rs.getString("regDate");
 					String updateDate = rs.getString("updateDate");
 					String title = rs.getString("title");
 					String body = rs.getString("body");
-
 					Article article = new Article(id, regDate, updateDate, title, body);
-
 					articles.add(article);
 				}
 
-
+			} catch (SQLException e) {
+				System.out.println("에러 a.l: " + e);
+			} finally {
+				try {
+					if (rs != null && !rs.isClosed()) {
+						rs.close();
+					}
+					if (pstmt != null && !pstmt.isClosed()) {
+						pstmt.close();
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
 			if (articles.size() == 0) {
 				System.out.println("게시글이 없습니다");
-				continue;
+				return 0;
 			}
-
 			System.out.println("번호   /   제목");
-
 			for (Article article : articles) {
 				System.out.printf("%4d   /   %s\n", article.id, article.title);
 			}
@@ -108,6 +155,9 @@ public class APP {
 			System.out.printf("새 내용 : ");
 			String newBody = sc.nextLine();
 
+			PreparedStatement pstmt = null;
+
+			try {
 
 				String sql = "UPDATE article";
 				sql += " SET updateDate = NOW(),";
@@ -115,38 +165,27 @@ public class APP {
 				sql += " `body` = '" + newBody + "'";
 				sql += " WHERE id = " + id + ";";
 
+				System.out.println(sql);
 
 				pstmt = conn.prepareStatement(sql);
 
 				pstmt.executeUpdate();
 
+			} catch (SQLException e) {
+				System.out.println("에러 : " + e);
+			} finally {
+				try {
+					if (pstmt != null && !pstmt.isClosed()) {
+						pstmt.close();
+					}
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
 			System.out.println(id + "번 글이 수정되었습니다");
 		}
 
-	} catch (ClassNotFoundException e) {
-		System.out.println("드라이버 로딩 실패");
-	} catch (SQLException e) {
-		System.out.println("에러 : " + e);
-	} finally {
-		try {
-			if (rs != null && !rs.isClosed()) {
-				rs.close();
-			}
-			if (pstmt != null && !pstmt.isClosed()) {
-				pstmt.close();
-			}
-			if (conn != null && !conn.isClosed()) {
-				conn.close();
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		return 0;
 	}
 
-}
-
-	System.out.println("==프로그램 종료==");
-	
-	sc.close();
-}
 }
