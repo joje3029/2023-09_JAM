@@ -1,72 +1,68 @@
 package com.koreaIT.example.JAM.dao;
 
 import java.sql.Connection;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.koreaIT.example.JAM.Article;
 import com.koreaIT.example.JAM.util.DBUtil;
 import com.koreaIT.example.JAM.util.SecSql;
 
 public class ArticleDao {
-	
+
 	private Connection conn;
 	
 	public ArticleDao(Connection conn) {
-		this.conn=conn;
+		this.conn = conn;
 	}
 
-	public int dowrite(String title, String body) {
+	public int doWrite(String title, String body, int loginedMemberId) {
+		
 		SecSql sql = new SecSql();
 		sql.append("INSERT INTO article");
 		sql.append("SET regDate = NOW(),");
 		sql.append("updateDate = NOW(),");
 		sql.append("title = ?,", title);
-		sql.append("`body` = ?", body);
+		sql.append("`body` = ?,", body);
+		sql.append("writerID = ?", loginedMemberId);
 
 		return DBUtil.insert(conn, sql);
-		
-		
-
-		
-
 	}
 
-	public List<Map<String, Object>> showlist() {
+	public List<Map<String, Object>> showList() {
 		
-
 		SecSql sql = new SecSql();
 		sql.append("SELECT *");
-		sql.append("FROM article");
-		sql.append("ORDER BY id DESC");
-		
-		
+		sql.append("FROM article AS a");
+		sql.append("INNER JOIN `member` AS m");
+		sql.append("ON a.writerId = m.Id");
+		sql.append("ORDER BY a.id DESC");
 		
 		return DBUtil.selectRows(conn, sql);
-
-		
 	}
 
-	public Map<String, Object> showdetail(int id) {
+	public Map<String, Object> showDetail(int id) {
+		
 		SecSql sql = new SecSql();
 		sql.append("SELECT *");
-		sql.append("FROM article");
-		sql.append("WHERE id = ?", id);
+		sql.append("FROM article AS a");
+		sql.append("INNER JOIN `member` AS m");
+		sql.append("ON a.writerID = m.ID");
+		sql.append("WHERE a.id = ?", id);
 
 		return DBUtil.selectRow(conn, sql);
-		
 	}
 
-	public int domodify(int id) {
+	public int articleCount(int id) {
+		
 		SecSql sql = SecSql.from("SELECT COUNT(*)");
 		sql.append("FROM article");
 		sql.append("WHERE id = ?", id);
-
+		
 		return DBUtil.selectRowIntValue(conn, sql);
 	}
 
-	public void domodify(String newTitle, String newBody, int id) {
+	public void doModify(String newTitle, String newBody, int id) {
+		
 		SecSql sql = new SecSql();
 		sql.append("UPDATE article");
 		sql.append("SET updateDate = NOW(),");
@@ -75,17 +71,16 @@ public class ArticleDao {
 		sql.append("WHERE id = ?", id);
 
 		DBUtil.update(conn, sql);
-		
-		return;
 	}
 
-	public int delete(int id) {
+	public int doDelete(int id) {
+		
 		SecSql sql = new SecSql();
 		sql.append("DELETE FROM article");
 		sql.append("WHERE id = ?", id);
-
+		
 		return DBUtil.delete(conn, sql);
-
 	}
+	
 
 }

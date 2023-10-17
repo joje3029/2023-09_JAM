@@ -4,33 +4,27 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 import com.koreaIT.example.JAM.Article;
 import com.koreaIT.example.JAM.dao.ArticleDao;
 
 public class ArticleService {
-	Scanner sc;
-	Connection conn;
-	ArticleDao articleDao;
 	
-	public ArticleService(Connection conn, Scanner sc) {
-		this.sc = sc;
-		this.conn =conn;
+	private ArticleDao articleDao;
+	
+	public ArticleService(Connection conn) {
 		this.articleDao = new ArticleDao(conn);
 	}
 
-	public int dowrtie(String title, String body) {
-		
-		int id= articleDao.dowrite(title,body);
-		return id;
-
+	public int doWrite(String title, String body, int loginedMemberId) {
+		return articleDao.doWrite(title, body, loginedMemberId);
 	}
 
-	public ArrayList<Article> showlist() {
-		ArrayList<Article> articles = new ArrayList<Article>();
+	public List<Article> showList() {
 		
-		List<Map<String, Object>> articleListMap =articleDao.showlist();
+		List<Article> articles = new ArrayList<>();
+		
+		List<Map<String, Object>> articleListMap =  articleDao.showList();
 		
 		for (Map<String, Object> articleMap : articleListMap) {
 			articles.add(new Article(articleMap));
@@ -39,23 +33,28 @@ public class ArticleService {
 		return articles;
 	}
 
-	public Map<String, Object> showdetail(int id) {
-		return articleDao.showdetail(id);
-	}
-
-	public int domodify(int id) {
-		return articleDao.domodify(id);
+	public Article showDetail(int id) {
 		
+		Map<String, Object> articleMap = articleDao.showDetail(id);
+		
+		if (articleMap.isEmpty()) {
+			return null;
+		}
+		
+		return new Article(articleMap);
 	}
 
-	public void domodify(String newTitle, String newBody, int id) {
-		articleDao.domodify(newTitle, newBody, id);
+	public int articleCount(int id) {
+		return articleDao.articleCount(id);
 	}
 
-	public int delete(int id) {
-		return articleDao.delete(id);
+	public void doModify(String newTitle, String newBody, int id) {
+		articleDao.doModify(newTitle, newBody, id);
 	}
 
+	public int doDelete(int id) {
+		return articleDao.doDelete(id);
 	}
 
 
+}

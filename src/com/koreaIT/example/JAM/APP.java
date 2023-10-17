@@ -3,15 +3,10 @@ package com.koreaIT.example.JAM;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
 import com.koreaIT.example.JAM.controller.ArticleController;
 import com.koreaIT.example.JAM.controller.MemberController;
-import com.koreaIT.example.JAM.util.DBUtil;
-import com.koreaIT.example.JAM.util.SecSql;
 
 public class App {
 
@@ -66,44 +61,32 @@ public class App {
 	private int doAction(Connection conn, String cmd, Scanner sc) {
 		
 		MemberController memberController = new MemberController(conn, sc);
-		ArticleController articleController = new ArticleController(conn,sc);
-		
+		ArticleController articleController = new ArticleController(conn, sc);
+
 		if (cmd.equals("exit")) {
 			return -1;
 		}
 
 		if (cmd.equals("member join")) {
-			
 			memberController.doJoin();
-			
+		} else if (cmd.equals("member login")) {
+			memberController.doLogin();
+		} else if (cmd.equals("member logout")) {
+			memberController.doLogout();
+		} else if (cmd.equals("member profile")) {
+			memberController.showProfile();
 		} else if (cmd.equals("article write")) {
-			articleController.dowrite();
-			
-
+			articleController.doWrite();
 		} else if (cmd.equals("article list")) {
-			articleController.showlist();
-			
-			
+			articleController.showList();
 		} else if (cmd.startsWith("article detail")) {
-
-			int id = Integer.parseInt(cmd.split(" ")[2]);
-			
-			articleController.showdetail(id);
-			
-			
+			articleController.showDetail(cmd);
 		} else if (cmd.startsWith("article modify")) {
-
-			int id = Integer.parseInt(cmd.split(" ")[2]);
-			
-			articleController.domodify(id);
-
-
+			articleController.doModify(cmd);
 		} else if (cmd.startsWith("article delete")) {
-
-			int id = Integer.parseInt(cmd.split(" ")[2]);
-
-			articleController.delete(id);
-			
+			articleController.doDelete(cmd);
+		} else {
+			System.out.println("존재하지 않는 명령어 입니다");
 		}
 
 		return 0;
